@@ -15,7 +15,6 @@ The project was developed with the following technologies:
 ## :tv: Usage
 
 ```bash
-cd pokedex
 npm install
 expo start
 ```
