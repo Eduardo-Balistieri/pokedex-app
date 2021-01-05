@@ -1,4 +1,4 @@
-# :iphone: Pokedex App
+# :iphone: Pokédex App
 
 ![Project demo](./demo.gif)
 
@@ -12,7 +12,7 @@ The project was developed with the following technologies:
 * Reanimated
 * React Navigation
 
-[PokeApi](https://pokeapi.co/)
+[PokéApi](https://pokeapi.co/)
 
 ## :tv: Usage
 
