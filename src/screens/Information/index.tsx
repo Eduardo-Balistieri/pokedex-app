@@ -37,13 +37,13 @@ const Information = () => {
    const { pokemonData } = useRoute().params as RouteParams
    const favorites = useSelector((state: RootState) => state.favorites.pokemons)
 
-   
+
    const tabBarScrollView = useRef<ScrollView>(null)
-   
+
 
    const [pokemonIdWrapperWidth, setPokemonIdWrapperWidth] = useState(0)
    const [initialTabBarYPosition, setInitialTabBarYPosition] = useState(0)    // position of tabBar on screen
-   
+
    const maxTranslateYValue = useSharedValue(0)
    const rotate = useSharedValue(0)
    const tabBarY = useSharedValue(0)
@@ -71,7 +71,6 @@ const Information = () => {
 
 
 
-
    const onTabBarDrag = useAnimatedGestureHandler({
       onStart: (event, context: any) => {
          context.startY = tabBarY.value
@@ -85,7 +84,6 @@ const Information = () => {
             tabBarY.value = maxTranslateYValue.value
          else
             tabBarY.value = newY
-
       },
       onEnd: (event, context: any) => {
          const animConfig = {
@@ -146,7 +144,6 @@ const Information = () => {
          transform: [{ rotate }]
       }
    })
-
 
 
    const pokemonNameWrapper = useDerivedValue(() => {
@@ -315,10 +312,10 @@ const Information = () => {
                      <Image style={{ width: '100%', height: '100%' }} source={{ uri: pokemonData.sprite as string }} />
                   </Animated.View>
                ) : (
-                     <Animated.View style={pokemonImageStyles}>
-                        <AntDesign name='question' size={200} color='#FFF' />
-                     </Animated.View>
-                  )}
+                  <Animated.View style={pokemonImageStyles}>
+                     <AntDesign name='question' size={200} color='#FFF' />
+                  </Animated.View>
+               )}
             </View>
 
             <Animated.View
@@ -424,7 +421,7 @@ const styles = StyleSheet.create({
    },
 
    info: {
-      marginTop: 8,
+      marginTop: 5,
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -436,9 +433,10 @@ const styles = StyleSheet.create({
    },
    typeWrapper: {
       borderRadius: 50,
-      paddingVertical: 4,
-      paddingHorizontal: 20,
-      marginRight: 10
+      paddingVertical: 5,
+      paddingHorizontal: 18,
+      marginRight: 10,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)'
    },
    type: {
       fontFamily: 'Roboto700',
