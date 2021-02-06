@@ -11,10 +11,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import * as pokemonsActions from '../../../store/actions/pokemons'
 
 import { Ionicons } from '@expo/vector-icons'
-
-import TransparentStatusBar from '../../components/TransparentStatusBar'
-import { useSharedValue } from 'react-native-reanimated'
-import FocusAwareStatusBar from '../../components/FocusAwareStatusBar'
+import TranslucentStatusBar from '../../components/TranslucentStatusBar'
 
 
 const Home = () => {
@@ -23,8 +20,6 @@ const Home = () => {
 
    const navigator = useNavigation()
    const dispatch = useDispatch()
-
-   const screenY = useSharedValue(0)
 
    const [searchValue, setSearchValue] = useState<string>('')
    const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -37,7 +32,9 @@ const Home = () => {
 
       setShowError(false)
       setIsLoading(true)
-      const pokemonData = await pokemonsActions.getPokemonData(searchValue.trim().toLowerCase())
+      const pokemonData = await pokemonsActions.getPokemonData(
+         searchValue.trim().toLowerCase().replace(' ', '-')
+      )
       setIsLoading(false)
 
       if (pokemonData) {
@@ -61,14 +58,7 @@ const Home = () => {
 
    return (
       <View>
-         <FocusAwareStatusBar barStyle='light-content' hidden={false} />
-         <TransparentStatusBar screenY={screenY} opacityInput={[0, 150]} />
-
          <FlatList
-            onScroll={event => {
-               const y = event.nativeEvent.contentOffset.y
-               screenY.value = y
-            }}
             keyExtractor={(pokemon, index) => pokemon.name + index}
             data={pokemons}
             renderItem={pokemon => <PokemonMiniature pokemon={pokemon.item} />}
@@ -109,6 +99,7 @@ const Home = () => {
                            clearButtonMode='while-editing'
                            keyboardAppearance='default'
                            numberOfLines={1}
+                           autoCorrect={false}
                         />
                      </View>
                   </>
@@ -125,6 +116,7 @@ const Home = () => {
             onEndReached={listEndReached}
             contentContainerStyle={styles.container}
          />
+         <TranslucentStatusBar />
       </View>
    )
 }

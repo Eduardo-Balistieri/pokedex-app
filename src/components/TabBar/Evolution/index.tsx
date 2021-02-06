@@ -1,6 +1,8 @@
 import React from 'react'
-import { View, Text, StyleSheet, Image, Dimensions, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, Image, Dimensions } from 'react-native'
 import { Entypo, AntDesign } from '@expo/vector-icons'
+import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler'
+
 
 interface EvolutionProps {
    evolutionChain: Array<
@@ -17,12 +19,21 @@ interface EvolutionProps {
 const Evolution = ({ evolutionChain }: EvolutionProps) => (
    <View>
       {evolutionChain.map((evolutionElement, index) => (
-         <ScrollView horizontal pagingEnabled bounces={false} showsHorizontalScrollIndicator={false} key={index}>
+         <GestureHandlerScrollView
+            horizontal
+            pagingEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            key={index}
+            scrollEnabled={evolutionElement.length > 1}
+         >
             {evolutionElement.map((pokemon, index) => (
                <View key={pokemon.name}>
                   <View style={styles.pokemonWrapper} >
                      <View style={styles.levelWrapper}>
-                        <Text style={styles.levelContent}>{pokemon.minLevel !== null ? `Lvl ${pokemon.minLevel}` : ''}</Text>
+                        <Text style={styles.levelContent}>
+                           {pokemon.minLevel !== null ? `Lvl ${pokemon.minLevel}` : ''}
+                        </Text>
                      </View>
 
                      <View style={styles.pokemonImage}>
@@ -32,13 +43,14 @@ const Evolution = ({ evolutionChain }: EvolutionProps) => (
                         }
                      </View>
 
-                     <View style={{ paddingLeft: 10 }}>
+                     <View style={{ paddingLeft: 10, flex: 1 }}>
                         <Text style={styles.pokemonName}>{pokemon.name}</Text>
                         <Text style={styles.pokemonId}>#{pokemon.pokemonId < 100 ? ('00' + pokemon.pokemonId).slice(-3) : pokemon.pokemonId}</Text>
                         {pokemon.trigger && (
                            <View style={{ flexDirection: 'row' }}>
-                              <Text style={styles.trigger}>Trigger - </Text>
-                              <Text style={styles.triggerValue}>{pokemon.trigger.replace('-', ' ')}</Text>
+                              <Text style={styles.trigger}>
+                                 Trigger - <Text style={styles.triggerValue}>{pokemon.trigger.replace('-', ' ')}</Text>
+                              </Text>
                            </View>
                         )}
                      </View>
@@ -64,9 +76,9 @@ const Evolution = ({ evolutionChain }: EvolutionProps) => (
                   )}
                </View>
             ))}
-         </ScrollView>
+         </GestureHandlerScrollView>
       ))}
-   </View >
+   </View>
 )
 
 
@@ -75,7 +87,7 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       flexDirection: 'row',
       marginVertical: 5,
-      width: Dimensions.get('screen').width - 40,
+      width: Dimensions.get('screen').width - 40
    },
 
    levelWrapper: {
@@ -109,12 +121,14 @@ const styles = StyleSheet.create({
    trigger: {
       color: '#444',
       fontSize: 13,
-      paddingLeft: 10
+      paddingLeft: 10,
+      flex: 1,
+      flexWrap: 'wrap'
    },
    triggerValue: {
       textTransform: 'capitalize',
       fontSize: 13,
-      color: '#444',
+      color: '#444'
    },
 
    scrollHint: {

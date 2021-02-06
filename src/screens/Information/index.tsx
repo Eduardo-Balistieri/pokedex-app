@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useLayoutEffect, useRef } from 'react'
 import { Text, View, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions, Platform } from 'react-native'
 
 import { useDispatch, useSelector } from 'react-redux'
@@ -9,22 +9,23 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 
 import { LinearGradient } from 'expo-linear-gradient'
 import { AntDesign } from '@expo/vector-icons'
-
-import { Pokemon } from '../../../models/Pokemon'
-import { getColor } from '../../assets/styles/Colors'
-import { convertColor } from '../../utils/convertColor'
-import TabBar from '../../components/TabBar'
-
-import FocusAwareStatusBar from '../../components/FocusAwareStatusBar'
-
 import Animated, { Easing, Extrapolate, interpolate, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withRepeat, withTiming, runOnJS, useDerivedValue } from 'react-native-reanimated'
 import { PanGestureHandler } from 'react-native-gesture-handler'
 
+import { Pokemon } from '../../../models/Pokemon'
+import { getColor } from '../../assets/styles/Colors'
+import getColorVariant from '../../utils/getColorVariant'
+import TabBar from '../../components/TabBar'
+import TranslucentStatusBar from '../../components/TranslucentStatusBar'
 
 
-const SCREEN_WIDTH = Dimensions.get('screen').width
-const SCREEN_HEIGHT = Dimensions.get('screen').height
+
+const SCREEN = { ...Dimensions.get('window') }
 const HEADER_HEIGHT = 90
+
+const POKEMON_NAME_SCALE_FACTOR = 0.7
+const CONTENT_PADDING = 46
+
 
 interface RouteParams {
    pokemonData: Pokemon
@@ -41,12 +42,16 @@ const Information = () => {
    const tabBarScrollView = useRef<ScrollView>(null)
 
 
-   const [pokemonIdWrapperWidth, setPokemonIdWrapperWidth] = useState(0)
-   const [initialTabBarYPosition, setInitialTabBarYPosition] = useState(0)    // position of tabBar on screen
+   const initialTabBarYPosition = useSharedValue(0)    // initial position of tabBar on screen
 
-   const maxTranslateYValue = useSharedValue(0)
+   const maxTranslateYValue = useDerivedValue(() => {
+      const x = SCREEN.height - (SCREEN.height - initialTabBarYPosition.value)
+      return -(x - HEADER_HEIGHT)
+   })
+
    const rotate = useSharedValue(0)
    const tabBarY = useSharedValue(0)
+   const pokemonNameWidth = useSharedValue(0)
 
 
    const scrollToTop = () => {
@@ -54,19 +59,12 @@ const Information = () => {
    }
 
 
-   useEffect(() => {
+   useLayoutEffect(() => {
       rotate.value = withRepeat(
          withTiming(360, { easing: Easing.linear, duration: 500000 }),
          -1
       )
    }, [])
-
-   useEffect(() => {
-      if (initialTabBarYPosition > 0) {
-         const x = SCREEN_HEIGHT - (SCREEN_HEIGHT - initialTabBarYPosition)
-         maxTranslateYValue.value = -(x - HEADER_HEIGHT)
-      }
-   }, [initialTabBarYPosition])
 
 
 
@@ -113,17 +111,27 @@ const Information = () => {
 
    const pokemonImage = useDerivedValue(() => {
       return {
-         opacity: interpolate(tabBarY.value, [-5, -50], [1, 0]),
-         translateY: interpolate(tabBarY.value, [-5, -50], [0, -20], Extrapolate.CLAMP)
+         opacity: interpolate(
+            tabBarY.value,
+            [-5, -50],
+            [1, 0],
+            Extrapolate.CLAMP
+         ),
+         translateY: interpolate(
+            tabBarY.value,
+            [-5, -50],
+            [0, -20],
+            Extrapolate.CLAMP
+         )
       }
    })
    const pokemonImageStyles = useAnimatedStyle(() => {
-      const { opacity, translateY } = pokemonImage.value
       return {
-         opacity,
-         transform: [{ translateY }]
+         opacity: pokemonImage.value.opacity,
+         transform: [{ translateY: pokemonImage.value.translateY }]
       }
    })
+
 
 
    const headerPokeball = useDerivedValue(() => {
@@ -138,106 +146,110 @@ const Information = () => {
       }
    })
    const headerPokeballStyles = useAnimatedStyle(() => {
-      const { opacity, rotate } = headerPokeball.value
       return {
-         opacity,
-         transform: [{ rotate }]
+         opacity: headerPokeball.value.opacity,
+         transform: [{ rotate: headerPokeball.value.rotate }]
       }
    })
+
 
 
    const pokemonNameWrapper = useDerivedValue(() => {
       return {
-         translateY: interpolate(
-            tabBarY.value,
-            [maxTranslateYValue.value / 1.5, maxTranslateYValue.value],
-            [0, -63],
-            Extrapolate.CLAMP
-         ),
          translateX: interpolate(
             tabBarY.value,
             [maxTranslateYValue.value / 1.5, maxTranslateYValue.value],
-            [0, (SCREEN_WIDTH / 2) - pokemonIdWrapperWidth],
+            [0, (SCREEN.width / 2) - ((pokemonNameWidth.value * POKEMON_NAME_SCALE_FACTOR) / 2) - CONTENT_PADDING],
             Extrapolate.CLAMP
-         )
-      }
-   })
-   const pokemonNamePosition = useAnimatedStyle(() => {
-      const { translateX, translateY } = pokemonNameWrapper.value
-      return {
-         transform: [{ translateX }, { translateY }]
-      }
-   })
-
-
-   const pokemonName = useDerivedValue(() => {
-      const nameWrapperWidth = (SCREEN_WIDTH - 46) - pokemonIdWrapperWidth
-      const fontSize = nameWrapperWidth / pokemonData.name.length * 1.75
-      return {
-         fontSize: interpolate(
+         ),
+         translateY: interpolate(
             tabBarY.value,
             [maxTranslateYValue.value / 1.5, maxTranslateYValue.value],
-            [Math.min(fontSize, 38), 22],
+            [0, -65],
             Extrapolate.CLAMP
          )
       }
    })
-   const pokemonNameFontSize = useAnimatedStyle(() => {
-      const { fontSize } = pokemonName.value
+
+   const pokemonNameWrapperStyles = useAnimatedStyle(() => {
+      const { translateX, translateY } = pokemonNameWrapper.value
+      return { transform: [{ translateX }, { translateY }] }
+   })
+
+
+
+   const pokemonNameScale = useDerivedValue(() => {
+      return interpolate(
+         tabBarY.value,
+         [maxTranslateYValue.value / 1.5, maxTranslateYValue.value],
+         [1, POKEMON_NAME_SCALE_FACTOR],
+         Extrapolate.CLAMP
+      )
+   })
+
+   const pokemonNameStyles = useAnimatedStyle(() => {
+      //extremelly helpful --> https://www.dcode.fr/function-equation-finder
+
+      const maxSize = 40
+      const minSize = (-0.00169229 * Math.pow(SCREEN.width, 2)) + (1.30341 * SCREEN.width) - 223.802
+
+      const interpolatedFontSize = interpolate(
+         pokemonData.name.length,
+         [9, 14],
+         [maxSize, minSize]
+      )
+
       return {
-         fontSize
+         transform: [{ scale: pokemonNameScale.value }],
+         fontSize: Math.min(40, interpolatedFontSize)
       }
    })
 
 
    const pokemonId = useDerivedValue(() => {
-      return {
-         opacity: interpolate(
-            tabBarY.value,
-            [maxTranslateYValue.value / 3, maxTranslateYValue.value / 1.1],
-            [1, 0],
-            Extrapolate.CLAMP
-         )
-      }
+      return interpolate(
+         tabBarY.value,
+         [maxTranslateYValue.value / 3, maxTranslateYValue.value / 1.1],
+         [1, 0],
+         Extrapolate.CLAMP
+      )
    })
    const pokemonIdOpacity = useAnimatedStyle(() => {
-      const { opacity } = pokemonId.value
       return {
-         opacity
+         opacity: pokemonId.value
       }
    })
+
 
 
    const pokemonInfo = useDerivedValue(() => {
-      return {
-         opacity: interpolate(
-            tabBarY.value,
-            [maxTranslateYValue.value / 3, maxTranslateYValue.value / 1.3],
-            [1, 0],
-            Extrapolate.CLAMP
-         )
-      }
+      return interpolate(
+         tabBarY.value,
+         [maxTranslateYValue.value / 3, maxTranslateYValue.value / 1.3],
+         [1, 0],
+         Extrapolate.CLAMP
+      )
    })
    const pokemonInfoOpacity = useAnimatedStyle(() => {
-      const { opacity } = pokemonInfo.value
       return {
-         opacity
+         opacity: pokemonInfo.value
       }
    })
-
 
 
    return (
       <>
-         <FocusAwareStatusBar hidden />
-
+         <TranslucentStatusBar showBackground={false} />
          <LinearGradient
-            colors={[getColor(pokemonData.color), convertColor(getColor(pokemonData.color))]}
-            style={{ height: SCREEN_HEIGHT }}
+            colors={[getColor(pokemonData.color), getColorVariant(getColor(pokemonData.color), 50)]}
+            style={{ height: SCREEN.height }}
          >
             <View style={styles.header}>
                <Animated.View style={[styles.headerPokeball, headerPokeballStyles]}>
-                  <Image source={require('../../assets/images/pokeball.png')} style={{ width: '100%', height: '100%' }} />
+                  <Image
+                     source={require('../../assets/images/pokeball.png')}
+                     style={{ width: '100%', height: '100%' }}
+                  />
                </Animated.View>
 
                <TouchableOpacity onPress={navigator.goBack} style={styles.headerBtn}>
@@ -261,32 +273,22 @@ const Information = () => {
                <Text style={styles.japaneseName}>{pokemonData.japaneseName}</Text>
             </View>
 
-            <View style={{ paddingHorizontal: 23 }}>
+            <View style={{ paddingHorizontal: CONTENT_PADDING / 2 }}>
                <View style={styles.mainContent}>
-                  <Animated.View
-                     pointerEvents='none'
-                     style={[
-                        styles.pokemonNameWrapper,
-                        pokemonNamePosition,
-                        { width: SCREEN_WIDTH - 46 - pokemonIdWrapperWidth }
-                     ]}
-                  >
-                     <Text numberOfLines={1}>
-                        <Animated.Text
-                           style={[styles.pokemonName, pokemonNameFontSize]}
-                           numberOfLines={1}
-                        >
-                           {pokemonData.name}
-                        </Animated.Text>
-                     </Text>
+                  <Animated.View style={pokemonNameWrapperStyles} pointerEvents='none'>
+                     <Animated.Text
+                        style={[styles.pokemonName, pokemonNameStyles]}
+                        onLayout={event => {
+                           const { width } = event.nativeEvent.layout
+                           pokemonNameWidth.value = width
+                        }}
+                        numberOfLines={1}
+                     >
+                        {pokemonData.name}
+                     </Animated.Text>
                   </Animated.View>
 
-                  <Animated.View style={[styles.pokemonIdWrapper, pokemonIdOpacity]}
-                     onLayout={event => {
-                        const layout = event.nativeEvent.layout
-                        setPokemonIdWrapperWidth(layout.width)
-                     }}
-                  >
+                  <Animated.View style={[styles.pokemonIdWrapper, pokemonIdOpacity]}>
                      <Text style={styles.pokemonId}>
                         #{pokemonData.id < 100 ? ('00' + pokemonData.id).slice(-3) : pokemonData.id}
                      </Text>
@@ -322,7 +324,7 @@ const Information = () => {
                style={[styles.bottomContent, draggableTabBarStyles]}
                onLayout={event => {
                   const layout = event.nativeEvent.layout
-                  setInitialTabBarYPosition(layout.y)
+                  initialTabBarYPosition.value = layout.y
                }}
             >
                <PanGestureHandler onGestureEvent={onTabBarDrag} shouldCancelWhenOutside={false}>
@@ -333,15 +335,20 @@ const Information = () => {
                         left: 0,
                         top: -10,
                         height: 95,
-                        zIndex: 10
+                        zIndex: 10,
+                        backgroundColor: 'transparent'
                      }}
                   />
                </PanGestureHandler>
-               <ScrollView directionalLockEnabled ref={tabBarScrollView} showsVerticalScrollIndicator={false}>
+
+               <ScrollView
+                  directionalLockEnabled
+                  ref={tabBarScrollView}
+                  showsVerticalScrollIndicator={false}
+               >
                   <TabBar pokemonData={pokemonData} />
                </ScrollView>
             </Animated.View>
-
          </LinearGradient>
       </>
    )
@@ -351,7 +358,7 @@ const styles = StyleSheet.create({
    header: {
       width: '100%',
       height: 90,
-      paddingHorizontal: 23,
+      paddingHorizontal: CONTENT_PADDING / 2,
       paddingBottom: 20,
       alignItems: 'flex-end',
       justifyContent: 'space-between',
@@ -377,7 +384,7 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
       overflow: 'visible',
-      width: SCREEN_WIDTH,
+      width: SCREEN.width,
       alignSelf: 'center',
       flexWrap: 'nowrap',
       height: 100
@@ -401,23 +408,26 @@ const styles = StyleSheet.create({
    pokemonNameWrapper: {
       height: '100%',
       justifyContent: 'center',
-      flexShrink: 1
+      flexShrink: 1,
+      flex: 1
    },
    pokemonName: {
       color: 'white',
       fontFamily: 'Roboto700',
-      textTransform: 'capitalize'
+      textTransform: 'capitalize',
+      alignSelf: 'flex-start'
    },
 
    pokemonIdWrapper: {
       paddingLeft: 10,
       height: '100%',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      alignItems: 'flex-end'
    },
    pokemonId: {
       color: 'white',
       fontFamily: 'Roboto700',
-      fontSize: 23,
+      fontSize: 23
    },
 
    info: {

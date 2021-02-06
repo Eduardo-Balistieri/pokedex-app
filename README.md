@@ -9,7 +9,7 @@ The project was developed with the following technologies:
 * React Native
 * TypeScript
 * Redux
-* Reanimated
+* Reanimated v2
 * React Navigation
 
 [PokéApi](https://pokeapi.co/)

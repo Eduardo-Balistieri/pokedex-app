@@ -8,25 +8,15 @@ import ListHeader from '../../components/ListHeader'
 import FavoriteBlock from '../../components/FavoriteBlock'
 import { AntDesign } from '@expo/vector-icons'
 
-import TransparentStatusBar from '../../components/TransparentStatusBar'
-import { useSharedValue } from 'react-native-reanimated'
-import FocusAwareStatusBar from '../../components/FocusAwareStatusBar'
+import TranslucentStatusBar from '../../components/TranslucentStatusBar'
 
 
 const Favorites = () => {
    const favorites = useSelector((state: RootState) => state.favorites.pokemons)
-   const screenY = useSharedValue(0)
 
    return (
       <View style={{ flex: 1 }}>
-         <FocusAwareStatusBar barStyle='light-content' hidden={false} />
-         <TransparentStatusBar screenY={screenY} opacityInput={[0, 150]} />
-
          <FlatList
-            onScroll={event => {
-               const y = event.nativeEvent.contentOffset.y
-               screenY.value = y
-            }}
             keyExtractor={item => item.id.toString()}
             data={favorites}
 
@@ -57,6 +47,7 @@ const Favorites = () => {
                <Text style={styles.noFavoritesText}>Start adding !</Text>
             </View>
          )}
+         <TranslucentStatusBar />
       </View>
    )
 }
