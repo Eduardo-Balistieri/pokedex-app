@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
       paddingVertical: 25,
       paddingHorizontal: 20,
 
-      marginHorizontal: 15,
+      marginHorizontal: 10,
       marginVertical: 5,
 
       position: 'relative',
@@ -109,14 +109,13 @@ const styles = StyleSheet.create({
       right: 15
    },
 
-
    floatingPokeball: {
+      width: 250,
+      height: 250,
       position: 'absolute',
-      top: 30,
-      left: -10,
-      opacity: 0.1,
-      width: 230,
-      height: 230
+      bottom: -100,
+      left: -90,
+      opacity: 0.1
    },
 
    pokemonImage: {

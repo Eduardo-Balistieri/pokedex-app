@@ -32,8 +32,8 @@ const FavoriteBlock = ({ pokemonData }: FavoriteBlockProps) => {
    }
 
    return (
-      <View style={{ marginHorizontal: 5 }}>
-         <SwipeableDelete boxHeight={FAVORITE_BLOCK_HEIGHT} removePokemon={removeFavoriteHandler}>
+      <SwipeableDelete boxHeight={FAVORITE_BLOCK_HEIGHT} removePokemon={removeFavoriteHandler}>
+         <View style={{ paddingHorizontal: 5 }}>
             <TouchableOpacity activeOpacity={0.6} onPress={pokemonInformationHandler}>
                <View style={styles.favoriteBlock}>
                   <View
@@ -84,8 +84,8 @@ const FavoriteBlock = ({ pokemonData }: FavoriteBlockProps) => {
                   </View>
                </View>
             </TouchableOpacity>
-         </SwipeableDelete>
-      </View>
+         </View>
+      </SwipeableDelete>
    )
 }
 

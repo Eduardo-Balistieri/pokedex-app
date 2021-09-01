@@ -21,7 +21,7 @@ const store = createStore(rootReducer, applyMiddleware(thunk))
 
 const App = () => (
 	<Provider store={store}>
-		<StatusBar style='light' backgroundColor={'transparent'} animated />
+		<StatusBar hidden />
 
 		<NavigationContainer>
 			<Routes />

@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
       width: Dimensions.get('screen').width,
       paddingHorizontal: 20,
       paddingTop: 20,
-      paddingBottom: 190
+      // paddingBottom: 0
    },
    menuOption: {
       borderBottomWidth: StyleSheet.hairlineWidth,

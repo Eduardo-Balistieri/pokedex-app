@@ -50,8 +50,8 @@ const SwipeableDelete = ({ children, boxHeight, removePokemon }: SwipeableDelete
          translateX.value = translateX.value <= -boxHeight ? withTiming(-boxHeight) : withTiming(0)
 
          if (translateX.value <= -boxHeight * 1.5) {
-            translateX.value = withTiming(-WINDOW_WIDTH, { easing: Easing.linear, duration: 200 })
-            favoriteBlockHeight.value = withTiming(0, { easing: Easing.linear, duration: 200 })
+            translateX.value = withTiming(-WINDOW_WIDTH, { easing: Easing.linear, duration: 300 })
+            favoriteBlockHeight.value = withTiming(0, { easing: Easing.linear, duration: 300 })
 
             runOnJS(Haptics.impactAsync)()
             runOnJS(wrapper)()

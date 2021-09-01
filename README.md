@@ -1,6 +1,6 @@
 # :iphone: Pokédex App
 
-![Project demo](./demo.gif)
+![Project demo](https://media1.giphy.com/media/LrBmnJk26UJ2JbNM5r/giphy.gif)
 
 ## :heart: Technologies
 

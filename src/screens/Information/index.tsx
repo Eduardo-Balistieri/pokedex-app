@@ -6,6 +6,7 @@ import * as favoritesActions from '../../../store/actions/favorites'
 
 import { RootState } from '../../../store/types/rootState'
 import { useNavigation, useRoute } from '@react-navigation/native'
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
 
 import { LinearGradient } from 'expo-linear-gradient'
 import { AntDesign } from '@expo/vector-icons'
@@ -16,14 +17,13 @@ import { Pokemon } from '../../../models/Pokemon'
 import { getColor } from '../../assets/styles/Colors'
 import getColorVariant from '../../utils/getColorVariant'
 import TabBar from '../../components/TabBar'
-import TranslucentStatusBar from '../../components/TranslucentStatusBar'
 
 
-
-const SCREEN = { ...Dimensions.get('window') }
+const SCREEN = Dimensions.get('screen')
 const HEADER_HEIGHT = 90
 
 const POKEMON_NAME_SCALE_FACTOR = 0.7
+const BOTTOM_TAB_BORDER_RADIUS = 35
 const CONTENT_PADDING = 46
 
 
@@ -32,16 +32,14 @@ interface RouteParams {
 }
 
 const Information = () => {
+   const BOTTOM_TAB_HEIGHT = useBottomTabBarHeight()
    const navigator = useNavigation()
    const dispatch = useDispatch()
 
    const { pokemonData } = useRoute().params as RouteParams
    const favorites = useSelector((state: RootState) => state.favorites.pokemons)
 
-
    const tabBarScrollView = useRef<ScrollView>(null)
-
-
    const initialTabBarYPosition = useSharedValue(0)    // initial position of tabBar on screen
 
    const maxTranslateYValue = useDerivedValue(() => {
@@ -238,126 +236,133 @@ const Information = () => {
 
 
    return (
-      <>
-         <TranslucentStatusBar showBackground={false} />
-         <LinearGradient
-            colors={[getColor(pokemonData.color), getColorVariant(getColor(pokemonData.color), 50)]}
-            style={{ height: SCREEN.height }}
-         >
-            <View style={styles.header}>
-               <Animated.View style={[styles.headerPokeball, headerPokeballStyles]}>
-                  <Image
-                     source={require('../../assets/images/pokeball.png')}
-                     style={{ width: '100%', height: '100%' }}
-                  />
+      <LinearGradient
+         colors={[getColor(pokemonData.color), getColorVariant(getColor(pokemonData.color), 50)]}
+         style={{ flex: 1 }}
+      >
+         <View style={styles.header}>
+            <Animated.View style={[styles.headerPokeball, headerPokeballStyles]}>
+               <Image
+                  source={require('../../assets/images/pokeball.png')}
+                  style={{ width: '100%', height: '100%' }}
+               />
+            </Animated.View>
+
+            <TouchableOpacity onPress={navigator.goBack} style={styles.headerBtn}>
+               <AntDesign name='arrowleft' size={24} color='white' />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.headerBtn} onPress={() => {
+               favorites.find(pokemon => pokemon.id === pokemonData.id)
+                  ? dispatch(favoritesActions.removeFavorite(pokemonData.id))
+                  : dispatch(favoritesActions.addFavorite(pokemonData))
+            }}>
+               <AntDesign
+                  name={favorites.find(pokemon => pokemon.id === pokemonData.id) ? 'heart' : 'hearto'}
+                  size={24}
+                  color='white'
+               />
+            </TouchableOpacity>
+         </View>
+
+         <View style={styles.japaneseNameWrapper}>
+            <Text style={styles.japaneseName}>{pokemonData.japaneseName}</Text>
+         </View>
+
+         <View style={{ paddingHorizontal: CONTENT_PADDING / 2 }}>
+            <View style={styles.mainContent}>
+               <Animated.View style={pokemonNameWrapperStyles} pointerEvents='none'>
+                  <Animated.Text
+                     style={[styles.pokemonName, pokemonNameStyles]}
+                     onLayout={event => {
+                        const { width } = event.nativeEvent.layout
+                        pokemonNameWidth.value = width
+                     }}
+                     numberOfLines={1}
+                  >
+                     {pokemonData.name}
+                  </Animated.Text>
                </Animated.View>
 
-               <TouchableOpacity onPress={navigator.goBack} style={styles.headerBtn}>
-                  <AntDesign name='arrowleft' size={24} color='white' />
-               </TouchableOpacity>
-
-               <TouchableOpacity style={styles.headerBtn} onPress={() => {
-                  favorites.find(pokemon => pokemon.id === pokemonData.id)
-                     ? dispatch(favoritesActions.removeFavorite(pokemonData.id))
-                     : dispatch(favoritesActions.addFavorite(pokemonData))
-               }}>
-                  <AntDesign
-                     name={favorites.find(pokemon => pokemon.id === pokemonData.id) ? 'heart' : 'hearto'}
-                     size={24}
-                     color='white'
-                  />
-               </TouchableOpacity>
+               <Animated.View style={[styles.pokemonIdWrapper, pokemonIdOpacity]}>
+                  <Text style={styles.pokemonId}>
+                     #{pokemonData.id < 100 ? ('00' + pokemonData.id).slice(-3) : pokemonData.id}
+                  </Text>
+               </Animated.View>
             </View>
 
-            <View style={styles.japaneseNameWrapper}>
-               <Text style={styles.japaneseName}>{pokemonData.japaneseName}</Text>
-            </View>
-
-            <View style={{ paddingHorizontal: CONTENT_PADDING / 2 }}>
-               <View style={styles.mainContent}>
-                  <Animated.View style={pokemonNameWrapperStyles} pointerEvents='none'>
-                     <Animated.Text
-                        style={[styles.pokemonName, pokemonNameStyles]}
-                        onLayout={event => {
-                           const { width } = event.nativeEvent.layout
-                           pokemonNameWidth.value = width
-                        }}
-                        numberOfLines={1}
-                     >
-                        {pokemonData.name}
-                     </Animated.Text>
-                  </Animated.View>
-
-                  <Animated.View style={[styles.pokemonIdWrapper, pokemonIdOpacity]}>
-                     <Text style={styles.pokemonId}>
-                        #{pokemonData.id < 100 ? ('00' + pokemonData.id).slice(-3) : pokemonData.id}
-                     </Text>
-                  </Animated.View>
+            <Animated.View style={[styles.info, pokemonInfoOpacity]}>
+               <View style={styles.types}>
+                  {pokemonData.types.map(type => (
+                     <View key={type} style={styles.typeWrapper}>
+                        <Text style={styles.type}>{type}</Text>
+                     </View>
+                  ))}
                </View>
 
-               <Animated.View style={[styles.info, pokemonInfoOpacity]}>
-                  <View style={styles.types}>
-                     {pokemonData.types.map(type => (
-                        <View key={type} style={styles.typeWrapper}>
-                           <Text style={styles.type}>{type}</Text>
-                        </View>
-                     ))}
-                  </View>
+               <Text style={styles.genera} numberOfLines={1}>{pokemonData.genera}</Text>
+            </Animated.View>
+         </View>
 
-                  <Text style={styles.genera} numberOfLines={1}>{pokemonData.genera}</Text>
+         <View style={styles.pokemonImageWrapper} pointerEvents='none'>
+            {pokemonData.sprite ? (
+               <Animated.View style={[styles.pokemonImage, pokemonImageStyles]}>
+                  <Image style={{ width: '100%', height: '100%' }} source={{ uri: pokemonData.sprite as string }} />
                </Animated.View>
-            </View>
+            ) : (
+               <Animated.View style={pokemonImageStyles}>
+                  <AntDesign name='question' size={200} color='#FFF' />
+               </Animated.View>
+            )}
+         </View>
 
-            <View style={styles.pokemonImageWrapper} pointerEvents='none'>
-               {pokemonData.sprite ? (
-                  <Animated.View style={[styles.pokemonImage, pokemonImageStyles]}>
-                     <Image style={{ width: '100%', height: '100%' }} source={{ uri: pokemonData.sprite as string }} />
-                  </Animated.View>
-               ) : (
-                  <Animated.View style={pokemonImageStyles}>
-                     <AntDesign name='question' size={200} color='#FFF' />
-                  </Animated.View>
-               )}
-            </View>
+         <Animated.View
+            style={[styles.bottomContent, draggableTabBarStyles]}
+            onLayout={event => {
+               const layout = event.nativeEvent.layout
+               initialTabBarYPosition.value = layout.y
+            }}
+         >
+            <PanGestureHandler onGestureEvent={onTabBarDrag} shouldCancelWhenOutside={false}>
+               <Animated.View
+                  style={{
+                     position: 'absolute',
+                     right: 0,
+                     left: 0,
+                     top: -10,
+                     height: 95,
+                     zIndex: 10,
+                     backgroundColor: 'transparent'
+                  }}
+               />
+            </PanGestureHandler>
 
-            <Animated.View
-               style={[styles.bottomContent, draggableTabBarStyles]}
-               onLayout={event => {
-                  const layout = event.nativeEvent.layout
-                  initialTabBarYPosition.value = layout.y
+            <ScrollView
+               directionalLockEnabled
+               ref={tabBarScrollView}
+               showsVerticalScrollIndicator={false}
+               style={{
+                  borderTopLeftRadius: BOTTOM_TAB_BORDER_RADIUS,
+                  borderTopRightRadius: BOTTOM_TAB_BORDER_RADIUS,
+                  backgroundColor: '#FFF',
+                  height: SCREEN.height - HEADER_HEIGHT - BOTTOM_TAB_HEIGHT
+               }}
+               contentContainerStyle={{
+                  paddingTop: 20,
+                  paddingBottom: 20
                }}
             >
-               <PanGestureHandler onGestureEvent={onTabBarDrag} shouldCancelWhenOutside={false}>
-                  <Animated.View
-                     style={{
-                        position: 'absolute',
-                        right: 0,
-                        left: 0,
-                        top: -10,
-                        height: 95,
-                        zIndex: 10,
-                        backgroundColor: 'transparent'
-                     }}
-                  />
-               </PanGestureHandler>
-
-               <ScrollView
-                  directionalLockEnabled
-                  ref={tabBarScrollView}
-                  showsVerticalScrollIndicator={false}
-               >
-                  <TabBar pokemonData={pokemonData} />
-               </ScrollView>
-            </Animated.View>
-         </LinearGradient>
-      </>
+               <TabBar pokemonData={pokemonData} />
+            </ScrollView>
+         </Animated.View>
+      </LinearGradient>
    )
 }
 
 const styles = StyleSheet.create({
    header: {
       width: '100%',
-      height: 90,
+      height: HEADER_HEIGHT,
       paddingHorizontal: CONTENT_PADDING / 2,
       paddingBottom: 20,
       alignItems: 'flex-end',
@@ -476,13 +481,9 @@ const styles = StyleSheet.create({
    },
 
    bottomContent: {
-      borderTopLeftRadius: 35,
-      borderTopRightRadius: 35,
       width: '100%',
-      paddingTop: 30,
       marginTop: -35,
-      zIndex: 5,
-      backgroundColor: '#FFF'
+      zIndex: 5
    }
 })
 

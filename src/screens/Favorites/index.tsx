@@ -8,8 +8,6 @@ import ListHeader from '../../components/ListHeader'
 import FavoriteBlock from '../../components/FavoriteBlock'
 import { AntDesign } from '@expo/vector-icons'
 
-import TranslucentStatusBar from '../../components/TranslucentStatusBar'
-
 
 const Favorites = () => {
    const favorites = useSelector((state: RootState) => state.favorites.pokemons)
@@ -19,7 +17,9 @@ const Favorites = () => {
          <FlatList
             keyExtractor={item => item.id.toString()}
             data={favorites}
-
+            renderItem={({ item }) => <FavoriteBlock pokemonData={item} />}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
             ListHeaderComponent={(
                <ListHeader>
                   <>
@@ -27,18 +27,12 @@ const Favorites = () => {
                         <Text style={styles.title}>Favorites</Text>
                      </View>
                      <View style={styles.swipeHint}>
-                        <AntDesign name='questioncircleo' size={16} color='#FFF' style={{ marginRight: 5 }} />
-                        <Text style={{ color: '#FFF', fontSize: 15, fontWeight: '500' }}>Swipe to remove...</Text>
+                        <AntDesign name='exclamation' size={16} color='#FFF' style={{ marginRight: 5 }} />
+                        <Text style={{ color: '#FFF', fontSize: 14 }}>Swipe to remove...</Text>
                      </View>
                   </>
                </ListHeader>
             )}
-
-            renderItem={({ item }) => <FavoriteBlock pokemonData={item} />}
-            showsVerticalScrollIndicator={false}
-            bounces={false}
-
-            ListFooterComponent={<View style={{ marginTop: 5 }} />}
          />
 
          {favorites.length === 0 && (
@@ -47,7 +41,6 @@ const Favorites = () => {
                <Text style={styles.noFavoritesText}>Start adding !</Text>
             </View>
          )}
-         <TranslucentStatusBar />
       </View>
    )
 }
@@ -75,20 +68,20 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'center',
       position: 'absolute',
-      top: '50%',
+      top: '60%',
       alignSelf: 'center'
    },
    noFavoritesTitle: {
       color: '#555',
       fontFamily: 'Roboto700',
       textAlign: 'center',
-      fontSize: 30
+      fontSize: 26
    },
    noFavoritesText: {
       color: '#555',
       fontFamily: 'Roboto300',
       textAlign: 'center',
-      fontSize: 20,
+      fontSize: 16,
       marginTop: 5
    }
 })

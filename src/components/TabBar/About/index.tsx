@@ -23,7 +23,7 @@ interface AboutProps {
 const About = ({ textEntries, weight, height, habitat, eggGroups, captureRate, color, growthRate, isLegendary, isMythical, femaleRate }: AboutProps) => (
    <View>
       <Text style={styles.about}>{textEntries[Math.floor(Math.random() * textEntries.length)]}</Text>
-
+      
       <View style={styles.metrics}>
          <View>
             <Text style={styles.metric}>Height</Text>

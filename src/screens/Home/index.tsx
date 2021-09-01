@@ -11,32 +11,32 @@ import { useSelector, useDispatch } from 'react-redux'
 import * as pokemonsActions from '../../../store/actions/pokemons'
 
 import { Ionicons } from '@expo/vector-icons'
-import TranslucentStatusBar from '../../components/TranslucentStatusBar'
 
 
 const Home = () => {
-   const pokemons = useSelector((state: RootState) => state.pokemons.pokemons)
-   const actualOffset = useSelector((state: RootState) => state.pokemons.actualOffset)
-
    const navigator = useNavigation()
    const dispatch = useDispatch()
 
+   const pokemons = useSelector((state: RootState) => state.pokemons.pokemons)
+   const actualOffset = useSelector((state: RootState) => state.pokemons.actualOffset)
+
+   const [lastOffset, setLastOffset] = useState(-1)
    const [searchValue, setSearchValue] = useState<string>('')
    const [isLoading, setIsLoading] = useState<boolean>(false)
    const [showError, setShowError] = useState<boolean>(false)
 
 
    const searchForPokemon = async () => {
-      if (!searchValue.trim())
-         return setShowError(true)
-
+      if (!searchValue.trim()) {
+         setShowError(true)
+         return
+      }
       setShowError(false)
       setIsLoading(true)
       const pokemonData = await pokemonsActions.getPokemonData(
          searchValue.trim().toLowerCase().replace(' ', '-')
       )
       setIsLoading(false)
-
       if (pokemonData) {
          setSearchValue('')
          navigator.navigate('information', { pokemonData })
@@ -46,7 +46,10 @@ const Home = () => {
    }
 
    const listEndReached = () => {
-      dispatch(pokemonsActions.getMorePokemons(actualOffset))
+      if (lastOffset !== actualOffset) {
+         setLastOffset(actualOffset)
+         dispatch(pokemonsActions.getMorePokemons(actualOffset))
+      }
    }
 
    if (!pokemons)
@@ -59,12 +62,15 @@ const Home = () => {
    return (
       <View>
          <FlatList
+            contentContainerStyle={styles.container}
             keyExtractor={(pokemon, index) => pokemon.name + index}
             data={pokemons}
             renderItem={pokemon => <PokemonMiniature pokemon={pokemon.item} />}
             initialNumToRender={10}
             bounces={false}
-
+            showsVerticalScrollIndicator={false}
+            onEndReachedThreshold={0.1}
+            onEndReached={listEndReached}
             ListHeaderComponent={(
                <ListHeader>
                   <>
@@ -83,9 +89,9 @@ const Home = () => {
                      <View style={styles.inputWrapper}>
                         <Ionicons
                            name='ios-search'
-                           size={22}
+                           size={20}
                            color='#FFF'
-                           style={{ marginLeft: 15, marginRight: 10 }}
+                           style={{ marginLeft: 16, marginRight: 8 }}
                         />
                         <TextInput
                            style={styles.searchInput}
@@ -105,18 +111,12 @@ const Home = () => {
                   </>
                </ListHeader>
             )}
-
             ListFooterComponent={() => (
                <View style={styles.listFooter}>
                   <ActivityIndicator size='small' color='#444' />
                </View>
             )}
-            showsVerticalScrollIndicator={false}
-
-            onEndReached={listEndReached}
-            contentContainerStyle={styles.container}
          />
-         <TranslucentStatusBar />
       </View>
    )
 }
@@ -143,18 +143,16 @@ const styles = StyleSheet.create({
    },
 
    inputWrapper: {
-      marginVertical: 5,
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: 'rgba(255, 255, 255, 0.4)',
+      backgroundColor: 'rgba(255, 255, 255, 0.35)',
       borderRadius: 50,
 
-      paddingVertical: 8,
-      paddingRight: 10,
-      maxHeight: 60
+      height: 40,
+      paddingRight: 10
    },
    searchInput: {
-      fontSize: 16.5,
+      fontSize: 14,
       color: '#FFF',
       flex: 1,
       fontWeight: '500'
